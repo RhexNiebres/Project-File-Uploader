@@ -1,0 +1,12 @@
+<h2>File Details</h2>
+<p><strong>Name:</strong> <%= file.filename %></p>
+<p><strong>Size:</strong> <%= (file.filesize / 1024).toFixed(2) %> KB</p>
+<p><strong>Uploaded At:</strong> <%= file.createdAt.toLocaleString() %></p>
+
+<a href="<%= file.folderId ? `/folders/${file.folderId}/file/${file.id}/download` : `/file/${file.id}/download` %>" class="btn btn-primary">Download File</a>
+
+<% if (file.folderId) { %>
+  <a href="/folders/<%= file.folderId %>" class="btn btn-secondary">Back to Folder</a>
+<% } else { %>
+  <a href="/" class="btn btn-secondary">Home</a>
+<% } %>
