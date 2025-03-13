@@ -1,6 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
-const upload = require("../middlewares/upload");
+const upload = require("../middlewares/multer");
 const path = require("path");
 const fs = require("fs");
 
@@ -126,7 +126,7 @@ exports.deleteFile = async (req, res) => {
     // Find the file by its ID
     const file = await prisma.file.findUnique({
       where: { id: parseInt(fileId) },
-    });
+    }); 
 
     if (!file) {
       return res.status(404).send("File not found");
