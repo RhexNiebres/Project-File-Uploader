@@ -1,6 +1,7 @@
 require("dotenv").config();
 const path = require("node:path");
 const express = require("express");
+const app = express();
 const session = require("express-session");
 const passport = require("./config/passport");
 const authRoutes = require("./routes/auth");
@@ -8,8 +9,6 @@ const indexRoutes = require("./routes/index");
 const uploadRoutes = require("./routes/upload");
 const folderRoutes = require("./routes/folder");
 const fileRoutes = require("./routes/file");
-const app = express();
-// const cloudinary = require("cloudinary").v2;
 
 // cloudinary.config({
 //   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -20,7 +19,7 @@ const app = express();
 // (async function() {
 //   try {
 //     // Example of uploading a single file
-//     const result = await cloudinary.uploader.upload('./uploads/sample.jpg');
+//     const result = await cloudinary.uploader.upload('./uploads/1741896868275-adobo.webp');
 //     console.log('Upload result:', result);
 
 //     // Get the URL of the uploaded file
@@ -38,8 +37,6 @@ const app = express();
 //   }
 // })();
 
-
-
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
@@ -51,18 +48,15 @@ app.use("/", indexRoutes);
 app.use("/", authRoutes);
 app.use("/folders", folderRoutes);
 app.use("/file", fileRoutes);
-app.use('/files', express.static(path.join(__dirname, 'uploads')));
+app.use("/files", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/upload", uploadRoutes);
 
 app.use((req, res, next) => {
   // access various local variables throughout app
   res.locals.user = req.user || null;
   next();
 });
-
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use("/upload", uploadRoutes);
-
-
 
 app.listen(process.env.APP_PORT, () =>
   console.log(`App listening on port ${process.env.APP_PORT}!`)
