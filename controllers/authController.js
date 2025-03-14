@@ -1,5 +1,5 @@
 const bcrypt = require("bcryptjs");
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 exports.getLogin = (req, res) => {
@@ -29,7 +29,7 @@ exports.postSignUp = async (req, res, next) => {
         firstname,
         lastname,
         username,
-        password: hashedPassword, 
+        password: hashedPassword,
       },
     });
 
