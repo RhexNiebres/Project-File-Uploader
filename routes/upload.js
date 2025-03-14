@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const upload = require("../middlewares/multer");
 const { ensureAuthenticated } = require("../middlewares/auth");
-const upload = require("../middlewares/upload");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
@@ -11,30 +11,27 @@ router.post("/multiple", ensureAuthenticated, upload.array("files", 5), async (r
       return res.status(400).send("No files uploaded.");
     }
 
-    console.log("Uploaded Files:", req.files);
-    console.log("User ID:", req.user?.id);
+    const uploadedFiles = req.files.map(file => ({
+      filename: file.originalname,
+      filetype: file.mimetype, // ✅ Add filetype (e.g., image/jpeg)
+      filesize: file.size, // ✅ Add filesize (in bytes)
+      filepath: file.path, // ✅ Save local path (or use Cloudinary URL if needed)
+      userId: req.user.id,
+    }));
 
-    const uploadedFiles = await Promise.all(
-      req.files.map((file) =>
-        prisma.file.create({
-          data: {
-            filename: file.originalname,
-            filetype: file.mimetype,
-            filesize: file.size,
-            filepath: file.path,
-            userId: req.user.id, 
-            folderId: null,
-          },
-        })
-      )
-    );
+    console.log("Uploaded Files:", uploadedFiles);
 
-    console.log("Saved to Database:", uploadedFiles);
+    // 🔥 Save files to database
+    await prisma.file.createMany({
+      data: uploadedFiles,
+    });
+
     res.redirect("/");
   } catch (error) {
-    console.error("Multiple Upload Error:", error);
+    console.error("Upload Error:", error);
     res.status(500).send("Error uploading files");
   }
 });
+
 
 module.exports = router;
