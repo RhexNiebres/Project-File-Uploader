@@ -31,7 +31,7 @@ model File {
   filename   String
   filetype   String
   filesize   Int
-  filepath   String   @unique
+  filepath   String   
   uploadedBy User     @relation(fields: [userId], references: [id])
   userId     Int
   folderId   Int?  
