@@ -10,7 +10,6 @@ passport.use(
       const user = await prisma.user.findUnique({
         where: { username: username },
       });
-      
 
       if (!user) return done(null, false, { message: "Incorrect username" });
 
