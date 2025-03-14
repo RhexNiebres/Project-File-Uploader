@@ -7,12 +7,15 @@
 <h2>Your Folders</h2>
 <ul>
   <% folders.forEach(folder => { %>
-    <li>
-      <a href="/folders/<%= folder.id %>"><%= folder.name %></a> 
-      <form action="/folders/delete/<%= folder.id %>" method="POST" style="display:inline;">
-        <button type="submit">delete</button>
-      </form>
-    </li>
+  <li>
+    <a href="/folders/<%= folder.id %>"><%= folder.name %></a>
+    <form
+      action="/folders/delete/<%= folder.id %>"
+      method="POST"
+      style="display: inline"
+    >
+      <button type="submit">delete</button>
+    </form>
+  </li>
   <% }); %>
 </ul>
-
