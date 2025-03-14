@@ -4,6 +4,7 @@ const upload = require("../middlewares/multer");
 const path = require("path");
 const fs = require("fs");
 const axios = require('axios');  // Import axios to download the file as a stream
+const cloudinary = require("cloudinary").v2;
 
 exports.getAllFiles = async (req, res) => {
   try {
@@ -144,38 +145,49 @@ exports.deleteFile = async (req, res) => {
       return res.status(404).send("File not found");
     }
 
-    // Check if the file is hosted on Cloudinary
+    // If the file is hosted on Cloudinary (check if URL starts with Cloudinary base URL)
     if (file.filepath.startsWith("https://res.cloudinary.com")) {
-      // Extract the public ID from the file URL
-      const publicId = file.filepath.split("/").pop().split(".")[0];
+      const publicId = file.filepath.split("/").slice(-2).join("/").split(".")[0];
 
-      // Delete the file from Cloudinary
+      // Log the publicId to verify it's correct
+      console.log("Cloudinary Public ID:", publicId);
+
       const cloudinaryResponse = await cloudinary.uploader.destroy(publicId);
 
       if (cloudinaryResponse.result === "ok") {
-        // Delete file record from database after successful deletion from Cloudinary
+        // File deleted successfully from Cloudinary
         await prisma.file.delete({
           where: { id: parseInt(fileId) },
         });
-
-        return res.status(200).send("File deleted successfully from Cloudinary");
       } else {
+        console.error("Cloudinary Error:", cloudinaryResponse);  // Log full response for debugging
         return res.status(500).send("Error deleting file from Cloudinary");
       }
     } else {
       // For local files (not hosted on Cloudinary)
-      const filePath = path.join(__dirname, "../", file.filepath.replace(/\\/g, "/"));
-      fs.unlinkSync(filePath); // Delete the file locally
+      const filePath = path.join(
+        __dirname,
+        "../",
+        file.filepath.replace(/\\/g, "/")
+      );
+      fs.unlinkSync(filePath);
 
       await prisma.file.delete({
         where: { id: parseInt(fileId) },
       });
+    }
 
-      return res.status(200).send("File deleted successfully");
+    // Redirect based on the folderId if it exists
+    if (folderId) {
+      return res.redirect(`/folders/${folderId}`);
+    } else {
+      return res.redirect("/");
     }
   } catch (error) {
     console.error("Error deleting file:", error);
     res.status(500).send("Error deleting file");
   }
 };
+
+
 
