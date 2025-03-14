@@ -13,15 +13,13 @@ router.post("/multiple", ensureAuthenticated, upload.array("files", 5), async (r
 
     const uploadedFiles = req.files.map(file => ({
       filename: file.originalname,
-      filetype: file.mimetype, // ✅ Add filetype (e.g., image/jpeg)
-      filesize: file.size, // ✅ Add filesize (in bytes)
-      filepath: file.path, // ✅ Save local path (or use Cloudinary URL if needed)
+      filetype: file.mimetype, 
+      filesize: file.size, 
+      filepath: file.path,
       userId: req.user.id,
     }));
 
     console.log("Uploaded Files:", uploadedFiles);
-
-    // 🔥 Save files to database
     await prisma.file.createMany({
       data: uploadedFiles,
     });
