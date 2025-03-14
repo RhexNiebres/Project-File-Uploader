@@ -3,7 +3,7 @@ const prisma = new PrismaClient();
 const upload = require("../middlewares/multer");
 const path = require("path");
 const fs = require("fs");
-const axios = require('axios');  // Import axios to download the file as a stream
+const axios = require("axios"); // Import axios to download the file as a stream
 const cloudinary = require("cloudinary").v2;
 
 exports.getAllFiles = async (req, res) => {
@@ -42,7 +42,6 @@ exports.viewFile = async (req, res) => {
   }
 };
 
-
 exports.downloadFile = async (req, res, next) => {
   try {
     const { fileId, folderId } = req.params;
@@ -58,27 +57,30 @@ exports.downloadFile = async (req, res, next) => {
       return res.status(400).send("File is not in the specified folder");
     }
 
-    // If the file is hosted on Cloudinary (check if URL starts with Cloudinary base URL)
+    // If the file is hosted on cloudinary
     if (file.filepath.startsWith("https://res.cloudinary.com")) {
       const fileUrl = file.filepath;
 
-      // Set headers to force download
-      res.attachment(file.filename); // This forces the download
+      res.attachment(file.filename); //direct download
       axios({
         url: fileUrl,
-        method: 'GET',
-        responseType: 'stream',
+        method: "GET",
+        responseType: "stream",
       })
-        .then(response => {
-          response.data.pipe(res); // Pipe the file stream to the response
+        .then((response) => {
+          response.data.pipe(res);
         })
-        .catch(err => {
+        .catch((err) => {
           console.error("Error downloading file from Cloudinary:", err);
           return res.status(500).send("Error downloading file");
         });
     } else {
       // For local files (not hosted on Cloudinary)
-      const filePath = path.join(__dirname, "../", file.filepath.replace(/\\/g, "/"));
+      const filePath = path.join(
+        __dirname,
+        "../",
+        file.filepath.replace(/\\/g, "/")
+      );
       res.download(filePath, file.filename, (err) => {
         if (err) {
           console.error("Error downloading file:", err);
@@ -91,7 +93,6 @@ exports.downloadFile = async (req, res, next) => {
     return res.status(500).send("Internal server error");
   }
 };
-
 
 exports.uploadFile = (req, res) => {
   upload.single("file")(req, res, async (err) => {
@@ -145,26 +146,25 @@ exports.deleteFile = async (req, res) => {
       return res.status(404).send("File not found");
     }
 
-    // If the file is hosted on Cloudinary (check if URL starts with Cloudinary base URL)
+    // If the file is hosted on cloudinary
     if (file.filepath.startsWith("https://res.cloudinary.com")) {
-      const publicId = file.filepath.split("/").slice(-2).join("/").split(".")[0];
-
-      // Log the publicId to verify it's correct
-      console.log("Cloudinary Public ID:", publicId);
+      const publicId = file.filepath
+        .split("/")
+        .slice(-2)
+        .join("/")
+        .split(".")[0];
 
       const cloudinaryResponse = await cloudinary.uploader.destroy(publicId);
 
       if (cloudinaryResponse.result === "ok") {
-        // File deleted successfully from Cloudinary
         await prisma.file.delete({
           where: { id: parseInt(fileId) },
         });
       } else {
-        console.error("Cloudinary Error:", cloudinaryResponse);  // Log full response for debugging
         return res.status(500).send("Error deleting file from Cloudinary");
       }
     } else {
-      // For local files (not hosted on Cloudinary)
+      // For local files
       const filePath = path.join(
         __dirname,
         "../",
@@ -176,8 +176,6 @@ exports.deleteFile = async (req, res) => {
         where: { id: parseInt(fileId) },
       });
     }
-
-    // Redirect based on the folderId if it exists
     if (folderId) {
       return res.redirect(`/folders/${folderId}`);
     } else {
@@ -188,6 +186,3 @@ exports.deleteFile = async (req, res) => {
     res.status(500).send("Error deleting file");
   }
 };
-
-
-
